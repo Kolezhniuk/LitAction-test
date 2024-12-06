@@ -1,0 +1,30 @@
+{
+  "name": "sdk",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "postinstall": "node fix.js"
+  },
+  "dependencies": {
+    "@0xpolygonid/js-sdk": "^1.24.1",
+    "@iden3/js-crypto": "^1.1.0",
+    "@lit-protocol/auth-helpers": "^7.0.0-alpha.9",
+    "@lit-protocol/constants": "^7.0.0-alpha.9",
+    "@lit-protocol/contracts": "^0.0.74",
+    "@lit-protocol/contracts-sdk": "^7.0.0-alpha.9",
+    "@lit-protocol/lit-node-client": "^7.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ethers": "5.7.2",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@chialab/esbuild-plugin-commonjs": "^0.18.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.17.9",
+    "esbuild": "^0.14.54",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "tsx": "^4.7.1"
+  }
+}
