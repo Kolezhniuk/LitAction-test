@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const p = "./node_modules/@0xpolygonid/js-sdk/package.json";
+const p = "./node_modules/@iden3/js-iden3-core/package.json";
 
 const pkg = JSON.parse(fs.readFileSync(p));
 

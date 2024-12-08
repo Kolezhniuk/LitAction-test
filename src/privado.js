@@ -1,24 +1,29 @@
-import { core, hexToBytes } from "@0xpolygonid/js-sdk";
+
+import {
+  buildDIDType,
+  DidMethod,
+  Blockchain,
+  NetworkId,
+  Id,
+  DID,
+  genesisFromEthAddress,
+} from "@iden3/js-iden3-core";
 
 export const go = async () => {
-  const didType = core.buildDIDType(
-    core.DidMethod.Iden3,
-    core.Blockchain.Polygon,
-    core.NetworkId.Amoy
+  const didType = buildDIDType(
+    DidMethod.Iden3,
+    Blockchain.Polygon,
+    NetworkId.Amoy
   );
 
-  // const did = buildDIDFromEthPubKey(didType, pubKeyHex);
+  const genesis = genesisFromEthAddress(ethers.utils.arrayify(ethAddress));
+  const identifier = new Id(didType, genesis);
+  const did = DID.parseFromId(identifier);
 
-  const genesis = core.genesisFromEthAddress(hexToBytes(ethAddress));
-  const identifier = new core.Id(didType, genesis);
-  const did = core.DID.parseFromId(identifier);
-
+  msgToSign =
+    typeof msgToSign === "string" ? msgToSign : JSON.stringify(msgToSign);
   const msgBytes = ethers.utils.arrayify(
-    ethers.utils.keccak256(
-      new TextEncoder().encode(
-        typeof msgToSign === "string" ? msgToSign : JSON.stringify(msgToSign)
-      )
-    )
+    ethers.utils.keccak256(new TextEncoder().encode(msgToSign))
   );
 
   await LitActions.ethPersonalSignMessageEcdsa({
@@ -30,6 +35,7 @@ export const go = async () => {
   const response = JSON.stringify(
     {
       did: did.string(),
+      signedMessage: msgToSign,
     },
     null,
     2

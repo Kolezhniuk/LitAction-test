@@ -131,25 +131,17 @@ export async function signMessage(msgToSign: string) {
     });
     console.log("✅ Got Session Sigs via an Auth Sig");
 
-    const litActionDIDCode = readFileSync("./privado.ID.lit.js", "utf8");
+        const litActionDIDCode = readFileSync("./privado.ID.lit.js", "utf8");
     const litActionDID = await litNodeClient.executeJs({
       sessionSigs,
-      code: litActionDIDCode,
+      // code: litActionDIDCode,
+      ipfsId: "QmSfpQY5ERiNLFXa5DNdXMhS6cj9xYVGWqz2XVRvBTHB1c",
       jsParams: {
-        msgToSign: { a: "b" },
+        msgToSign: "test",
         ethAddress: pkpInfo.ethAddress,
         publicKey: pkpInfo.publicKey,
       },
     });
-
-    console.log(
-      "✅ DID creation successful",
-      litActionDID,
-      typeof litActionDID.response
-    );
-
-    const { did } = litActionDID.response as { did: string };
-    console.log(did);
 
     return litActionDID;
   } catch (error) {

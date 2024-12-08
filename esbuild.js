@@ -1,7 +1,4 @@
-import { build, analyzeMetafile } from "esbuild";
-import esbuildPluginTsc from "esbuild-plugin-tsc";
-import commonjsPlugin from '@chialab/esbuild-plugin-commonjs';
-
+import { build } from "esbuild";
 build({
   entryPoints: ["./src/privado.js"],
   bundle: true,
@@ -10,14 +7,10 @@ build({
   outfile: "./privado.ID.lit.js",
   // sourceRoot: "./src",
   platform: "browser",
-  metafile: true,
-  external: ["ethers", "ky", "ky-universal", "@walletconnect/modal"],
+  metafile: false,
+  external: ["ethers"],
   // inject: ["./esbuild-shims.js"],
   plugins: [
-    // esbuildPluginTsc({
-    //   force: true,
-    // }),
-    // commonjsPlugin(),
   ],
 }).catch((err) => {
   console.error(err);

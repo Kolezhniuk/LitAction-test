@@ -5,8 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bot Verification</title>
     <script type="module">
-      import { ethers } from "./ethers.min.js";
-      console.log(ethers);
+      import { ethers } from "./ethers.esm.min.js";
+
+      const showElement = (element) => {
+        element.style.display = "inherit";
+      };
+
+      const hideElement = (element) => {
+        element.style.display = "none";
+      };
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        hideElement(document.querySelector(".valid"));
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const botName = urlParams.get("name") || "Unknown Bot";
+        const did = urlParams.get("did") || "Unknown DID";
+        const signature = urlParams.get("signature") || "Unknown Signature";
+        const msg = JSON.parse(urlParams.get("msg") ?? "{}");
+        const signedMsg =
+          urlParams.get("signedMsg") || "Unknown Signed Message";
+
+        const sig = ethers.utils.joinSignature(JSON.parse(signature));
+
+        const resp = await fetch(
+          `https://resolver.privado.id/1.0/identifiers/${did}`
+        );
+        const didDoc = await resp.json();
+
+        document.getElementById("bot-name").textContent = botName;
+        document.getElementById("did").innerHTML = `<b>${did}</b>`;
+
+        const vm = didDoc.didDocument.verificationMethod.find(
+          (vm) =>
+            vm.type === "EcdsaSecp256k1RecoveryMethod2020" &&
+            vm.controller === did
+        );
+
+        if (!vm) {
+          document.querySelector(".warning").textContent =
+            "No verification method found";
+          return;
+        }
+
+        const ethAddress = vm.blockchainAccountId.split(":").pop();
+
+        const recoveredAddress = ethers.utils.recoverAddress(signedMsg, sig);
+
+        const result =
+          ethAddress.toLowerCase() === recoveredAddress.toLowerCase();
+
+        console.assert(result, "Signature verification result:");
+
+        if (result) {
+          showElement(document.querySelector(".valid"));
+          hideElement(document.querySelector(".loader"));
+          document.getElementById("claim-button").disabled = true;
+          document.querySelector(".info").innerHTML = `Signature created at ${(new Date(msg.timeStamp)).toISOString()} on behalf of <b>@${msg.from}</b><br>Owner:<b>${recoveredAddress}</b>`;
+        } else {
+          showElement(document.querySelector(".invalid"));
+          hideElement(document.querySelector(".loader"));
+          document.getElementById("claim-button").disabled = false;
+        }
+      });
       // Your code here...
     </script>
 
@@ -18,9 +79,11 @@
         background-color: #f9f9f9;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: start;
+        margin-top: 5em;
         height: 100vh;
       }
+
       .loader {
         width: 28px;
         height: 28px;
@@ -111,11 +174,28 @@
       .claim-button:disabled {
         cursor: not-allowed;
       }
+
+      span.danger-text {
+        padding-left: 1em;
+        color: #d03827;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .info {
+        font-size: 12px;
+        color: #999;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1 id="bot-name">Loading...</h1>
+      <div class="header">
+        <h1 id="bot-name">Loading...</h1>
+      </div>
       <div class="valid-signature">
         <span class="valid">
           <img
@@ -123,6 +203,33 @@
             alt="Valid Signature Icon"
           />
           Valid Signature
+        </span>
+
+        <span class="invalid" style="display: none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            shape-rendering="geometricPrecision"
+            text-rendering="geometricPrecision"
+            image-rendering="optimizeQuality"
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            viewBox="0 0 512 512"
+            width="28"
+            height="28"
+          >
+            <path
+              fill="#A82C1F"
+              fill-rule="nonzero"
+              d="M256 0c70.686 0 134.69 28.658 181.016 74.984C483.342 121.31 512 185.314 512 256c0 70.686-28.658 134.69-74.984 181.016C390.69 483.342 326.686 512 256 512c-70.686 0-134.69-28.658-181.016-74.984C28.658 390.69 0 326.686 0 256c0-70.686 28.658-134.69 74.984-181.016C121.31 28.658 185.314 0 256 0z"
+            />
+            <circle fill="#D03827" cx="256" cy="256" r="226.536" />
+            <path
+              fill="#fff"
+              fill-rule="nonzero"
+              d="M275.546 302.281c-.88 22.063-38.246 22.092-39.099-.007-3.779-37.804-13.444-127.553-13.136-163.074.312-10.946 9.383-17.426 20.99-19.898 3.578-.765 7.512-1.136 11.476-1.132 3.987.007 7.932.4 11.514 1.165 11.989 2.554 21.402 9.301 21.398 20.444l-.044 1.117-13.099 161.385zm-19.55 39.211c14.453 0 26.168 11.717 26.168 26.171 0 14.453-11.715 26.167-26.168 26.167s-26.171-11.714-26.171-26.167c0-14.454 11.718-26.171 26.171-26.171z"
+            />
+          </svg>
+          <span class="danger-text">Invalid Signature</span>
         </span>
         <span class="loader"> </span>
         <div class="did" id="did">Loading...</div>
@@ -139,81 +246,8 @@
           Sign in to claim ownership
         </button>
       </div>
+
+      <div class="info"></div>
     </div>
-
-    <script>
-      const showElement = (element) => {
-        element.style.display = "inherit";
-      };
-
-      const hideElement = (element) => {
-        element.style.display = "none";
-      };
-
-      hideElement(document.querySelector(".valid"));
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        console.log("Hello from the client side!");
-        // const urlParams = new URLSearchParams(window.location.search);
-        // const botName = urlParams.get("name") || "Unknown Bot";
-        // const did = urlParams.get("did") || "Unknown DID";
-
-        // document.getElementById("bot-name").textContent = botName;
-        // document.getElementById("did").textContent = did;
-
-        // const resp = await fetch(`http://localhost:3005/resolve-did/${did}`);
-
-        // const didDoc = await resp.json();
-
-        // const bjjVm = didDoc.didDocument.verificationMethod.find(
-        //   (vm) => vm.type === "BJJKey" && vm.controller === did
-        // );
-
-        // if (!bjjVm) {
-        //   document.querySelector(".warning").textContent =
-        //     "No BJJKey verification method found";
-        //   return;
-        // }
-
-        // console.log(bjjVm);
-
-        // const service = didDoc.didDocument.services.find(
-        //   (s) => s.type === "challenge" && s.id.includes(did)
-        // );
-
-        // if (!service) {
-        //   document.querySelector(".warning").textContent =
-        //     "No challenge service found";
-        //   return;
-        // }
-
-        // const signChallengeUrl = service.serviceEndpoint;
-        // const challenge = new Date().getTime();
-        // const challengeResp = await fetch(
-        //   `${signChallengeUrl}/${challenge}/${did}`,
-        //   { method: "POST" }
-        // );
-
-        // const { signature } = await challengeResp.json();
-
-        // const { x, y } = bjjVm.jwk;
-
-        // const { PublicKey, Signature, Hex } = IdenJsCrypto;
-
-        // const pubKey = new PublicKey([BigInt(x), BigInt(y)]);
-
-        // const sig = Signature.newFromCompressed(Hex.decodeString(signature));
-
-        // const result = pubKey.verifyPoseidon(challenge, sig);
-
-        // console.log("Signature verification result:", result);
-
-        // if (result) {
-        //   showElement(document.querySelector(".valid"));
-        //   hideElement(document.querySelector(".loader"));
-        //   document.getElementById("claim-button").disabled = false;
-        // }
-      });
-    </script>
   </body>
 </html>
