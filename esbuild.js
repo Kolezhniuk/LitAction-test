@@ -3,13 +3,13 @@ import esbuildPluginTsc from "esbuild-plugin-tsc";
 import commonjsPlugin from '@chialab/esbuild-plugin-commonjs';
 
 build({
-  entryPoints: ["./src/createDID.js"],
+  entryPoints: ["./src/privado.js"],
   bundle: true,
   minify: false,
   sourcemap: false,
-  outfile: "./bundled.js",
+  outfile: "./privado.ID.lit.js",
   // sourceRoot: "./src",
-  platform: "node",
+  platform: "browser",
   metafile: true,
   external: ["ethers", "ky", "ky-universal", "@walletconnect/modal"],
   // inject: ["./esbuild-shims.js"],
@@ -17,7 +17,7 @@ build({
     // esbuildPluginTsc({
     //   force: true,
     // }),
-    commonjsPlugin(),
+    // commonjsPlugin(),
   ],
 }).catch((err) => {
   console.error(err);

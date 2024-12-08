@@ -6,18 +6,22 @@ const pkg = JSON.parse(fs.readFileSync(p));
 
 fs.writeFileSync(
   p,
-  JSON.stringify({
-    ...pkg,
-    module: pkg.main,
-    exports: {
-      ...pkg.exports,
-      ".": {
-        ...pkg.exports["."],
-        node: {
-          ...pkg.exports["."].node,
-          import: pkg.exports["."].node.require,
+  JSON.stringify(
+    {
+      ...pkg,
+      module: pkg.main,
+      exports: {
+        ...pkg.exports,
+        ".": {
+          ...pkg.exports["."],
+          node: {
+            require: pkg.exports['.'].browser,
+            import: pkg.exports['.'].browser,
+          },
         },
       },
     },
-  }, null, 2)
+    null,
+    2
+  )
 );
