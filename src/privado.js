@@ -1,4 +1,3 @@
-
 import {
   buildDIDType,
   DidMethod,
@@ -9,41 +8,37 @@ import {
   genesisFromEthAddress,
 } from "@iden3/js-iden3-core";
 
-export const go = async () => {
-  const didType = buildDIDType(
-    DidMethod.Iden3,
-    Blockchain.Polygon,
-    NetworkId.Amoy
-  );
+(async () => {
+  try {
+    const didType = buildDIDType(
+      DidMethod.Iden3,
+      Blockchain.Polygon,
+      NetworkId.Amoy
+    );
 
-  const genesis = genesisFromEthAddress(ethers.utils.arrayify(ethAddress));
-  const identifier = new Id(didType, genesis);
-  const did = DID.parseFromId(identifier);
+    const genesis = genesisFromEthAddress(ethers.utils.arrayify(ethAddress));
+    const identifier = new Id(didType, genesis);
+    const did = DID.parseFromId(identifier);
 
-  msgToSign =
-    typeof msgToSign === "string" ? msgToSign : JSON.stringify(msgToSign);
-  const msgBytes = ethers.utils.arrayify(
-    ethers.utils.keccak256(new TextEncoder().encode(msgToSign))
-  );
+    await LitActions.ethPersonalSignMessageEcdsa({
+      message: msgToSign,
+      publicKey,
+      sigName: "sig",
+    });
 
-  await LitActions.ethPersonalSignMessageEcdsa({
-    message: msgBytes,
-    publicKey,
-    sigName: "Privado.ID",
-  });
+    const response = JSON.stringify(
+      {
+        did: did.string(),
+        signedMessage: msgToSign,
+      },
+      null,
+      2
+    );
 
-  const response = JSON.stringify(
-    {
-      did: did.string(),
-      signedMessage: msgToSign,
-    },
-    null,
-    2
-  );
-
-  LitActions.setResponse({
-    response,
-  });
-};
-
-go();
+    LitActions.setResponse({
+      response,
+    });
+  } catch (error) {
+    console.log("Error");
+  }
+})();

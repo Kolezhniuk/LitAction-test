@@ -21,7 +21,7 @@ const [LIT_PKP_PUBLIC_KEY, LIT_CAPACITY_CREDIT_TOKEN_ID, ETHEREUM_PRIVATE_KEY] =
 
 const SELECTED_LIT_NETWORK = LIT_NETWORK.DatilTest;
 
-export async function signMessage(msgToSign: string) {
+export async function signMessage() {
   let litNodeClient: LitNodeClient;
   let pkpInfo: {
     tokenId?: string;
@@ -131,17 +131,58 @@ export async function signMessage(msgToSign: string) {
     });
     console.log("✅ Got Session Sigs via an Auth Sig");
 
-        const litActionDIDCode = readFileSync("./privado.ID.lit.js", "utf8");
+    const msgToSign = ethers.utils.arrayify(
+      ethers.utils.keccak256(
+        new TextEncoder().encode(
+          JSON.stringify({
+            from: "dima",
+            time: "test",
+          })
+        )
+      )
+    );
+    const litActionDIDCode = readFileSync("./privado.ID.lit.js", "utf8");
     const litActionDID = await litNodeClient.executeJs({
       sessionSigs,
-      // code: litActionDIDCode,
-      ipfsId: "QmSfpQY5ERiNLFXa5DNdXMhS6cj9xYVGWqz2XVRvBTHB1c",
+      code: litActionDIDCode,
+      // ipfsId: "Qmc6p6afLZDwRdq8H5WGzbrbjRPoaqt4njeubBEFyeDa5d",
       jsParams: {
-        msgToSign: "test",
+        msgToSign,
         ethAddress: pkpInfo.ethAddress,
         publicKey: pkpInfo.publicKey,
       },
     });
+
+    const { signatures, response } = litActionDID;
+
+    console.log("Response", response);
+
+    const signature = signatures["sig"];
+    console.log("Signatures", signature);
+
+    const sig = {
+      v: signature.recid,
+      r: `0x${signature.r}`,
+      s: `0x${signature.s}`,
+    };
+
+    const encodedSig = ethers.utils.joinSignature(sig);
+
+    const signedData = `0x${signature.dataSigned}`;
+
+    const recoveredAddress = ethers.utils.recoverAddress(
+      signedData,
+      encodedSig
+    );
+
+    console.log("Recovered Address", recoveredAddress);
+
+    console.assert(
+      pkpInfo.ethAddress?.toLowerCase() === recoveredAddress.toLowerCase(),
+      `Invalid Signature for ${pkpInfo.ethAddress}, recovered ${recoveredAddress}`
+    );
+
+    // verify the signature
 
     return litActionDID;
   } catch (error) {
@@ -151,7 +192,7 @@ export async function signMessage(msgToSign: string) {
   }
 }
 
-signMessage("Challenge to sign")
+signMessage()
   .then((signature) => {
     console.log(signature);
   })

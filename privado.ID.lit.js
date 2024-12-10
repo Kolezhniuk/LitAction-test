@@ -1374,35 +1374,34 @@
   };
 
   // src/privado.js
-  var go = async () => {
-    const didType = G(
-      h3.Iden3,
-      o.Polygon,
-      a.Amoy
-    );
-    const genesis = T2(ethers.utils.arrayify(ethAddress));
-    const identifier = new $2(didType, genesis);
-    const did = Q2.parseFromId(identifier);
-    msgToSign = typeof msgToSign === "string" ? msgToSign : JSON.stringify(msgToSign);
-    const msgBytes = ethers.utils.arrayify(
-      ethers.utils.keccak256(new TextEncoder().encode(msgToSign))
-    );
-    await LitActions.ethPersonalSignMessageEcdsa({
-      message: msgBytes,
-      publicKey,
-      sigName: "Privado.ID"
-    });
-    const response = JSON.stringify(
-      {
-        did: did.string(),
-        signedMessage: msgToSign
-      },
-      null,
-      2
-    );
-    LitActions.setResponse({
-      response
-    });
-  };
-  go();
+  (async () => {
+    try {
+      const didType = G(
+        h3.Iden3,
+        o.Polygon,
+        a.Amoy
+      );
+      const genesis = T2(ethers.utils.arrayify(ethAddress));
+      const identifier = new $2(didType, genesis);
+      const did = Q2.parseFromId(identifier);
+      await LitActions.ethPersonalSignMessageEcdsa({
+        message: msgToSign,
+        publicKey,
+        sigName: "sig"
+      });
+      const response = JSON.stringify(
+        {
+          did: did.string(),
+          signedMessage: msgToSign
+        },
+        null,
+        2
+      );
+      LitActions.setResponse({
+        response
+      });
+    } catch (error) {
+      console.log("Error");
+    }
+  })();
 })();
