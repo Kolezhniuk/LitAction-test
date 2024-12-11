@@ -26,7 +26,20 @@
         const signedMsg =
           urlParams.get("signedMsg") || "Unknown Signed Message";
 
-        const sig = ethers.utils.joinSignature(JSON.parse(signature));
+        const { r, s } = JSON.parse(signature);
+
+        const sigs = [
+          {
+            r,
+            s,
+            v: 27,
+          },
+          {
+            r,
+            s,
+            v: 28,
+          },
+        ].map((s) => ethers.utils.joinSignature(s));
 
         const resp = await fetch(
           `https://resolver.privado.id/1.0/identifiers/${did}`
@@ -50,10 +63,13 @@
 
         const ethAddress = vm.blockchainAccountId.split(":").pop();
 
-        const recoveredAddress = ethers.utils.recoverAddress(signedMsg, sig);
+        const recoveredAddresses = sigs.map((s) =>
+          ethers.utils.recoverAddress(signedMsg, s)
+        );
 
-        const result =
-          ethAddress.toLowerCase() === recoveredAddress.toLowerCase();
+        const result = recoveredAddresses.find(
+          (r) => ethAddress.toLowerCase() === r.toLowerCase()
+        );
 
         console.assert(result, "Signature verification result:");
 
@@ -61,7 +77,13 @@
           showElement(document.querySelector(".valid"));
           hideElement(document.querySelector(".loader"));
           document.getElementById("claim-button").disabled = true;
-          document.querySelector(".info").innerHTML = `Signature created at ${(new Date(msg.timeStamp)).toISOString()} on behalf of <b>@${msg.from}</b><br>Owner:<b>${recoveredAddress}</b>`;
+          document.querySelector(
+            ".info"
+          ).innerHTML = `Signature created at ${new Date(
+            msg.timeStamp
+          ).toISOString()} on behalf of <b>@${
+            msg.from
+          }</b><br>Owner:<b>${result}</b>`;
         } else {
           showElement(document.querySelector(".invalid"));
           hideElement(document.querySelector(".loader"));

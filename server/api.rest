@@ -1,0 +1,10 @@
+@host = http://localhost:4001/api
+
+@from=did:iden3:polygon:amoy:x6x5sor7zpxt8m7mh6u3pZJRDH1zTb13Fdt6BZVMM
+
+### Get DID
+# @name authRequest
+GET {{host}}/auth-request?from={{from}} HTTP/1.1
+Content-Type: application/json
+
+
